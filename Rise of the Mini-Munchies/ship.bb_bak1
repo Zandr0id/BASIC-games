@@ -1,0 +1,319 @@
+AppTitle "Rise of the Mini-Muchies"
+Graphics 640, 480, 16, 2
+
+
+
+timer = CreateTimer(30)
+
+;load a highscore
+If ReadFile("score.dat") = 0 Then
+ highscore = 200
+Else
+ scorefile = ReadFile("score.dat")
+ highscore = ReadInt(scorefile)
+ CloseFile(scorefile)
+EndIf 
+
+
+AutoMidHandle True
+;all my images
+ship=LoadAnimImage("Ship2.bmp",59,40,0,3)
+bullet = LoadImage("bullet.bmp")
+badguy = LoadAnimImage("badguy.bmp",31,30,0,2) 
+badbullet = LoadImage("Badbullet.bmp")
+stars = LoadImage("stars.bmp")
+starsfar = LoadImage("starsfar.bmp")
+;all my sounds
+playershot = LoadSound("playershot.wav")
+badshot = LoadSound("badshot.wav")
+playerexplode = LoadSound("playerexplode.wav")
+badexplode = LoadSound("badexplode.wav")
+levelup = LoadSound("levelup.wav")
+
+;start music
+ 
+
+
+;all the types
+Type bullet
+Field x
+Field y
+End Type 
+
+Type bomb
+Field x,y
+End Type 
+
+Type alien
+Field x,y
+
+End Type 
+;player start
+x = 320
+y = 400
+lives = 3
+playerframe=1
+
+levelnum = 0
+;alien movment
+aspeed = 2
+amx = aspeed
+chdir = False
+numaliens = 0
+score = 0
+scrolly = 0
+frame = 0
+numofcycles=0
+
+
+Color 0,255,0
+
+
+font = LoadFont("Blood Cyrillic",40,False,False)
+SetFont font 
+
+
+
+font = LoadFont("Blood Cyrillic",20,False,False)
+SetFont font 
+
+Text 320,240,"Rise of the Mini-Munchies",1,1
+Delay 3000
+Cls 
+Instructions() 
+
+
+SeedRnd MilliSecs()
+
+SetBuffer BackBuffer()
+
+
+
+;main loop
+
+While Not KeyDown(1)
+SetFont font 
+
+
+If numaliens = 0 Then	
+	PlaySound levelup
+	levelnum = levelnum+1
+	;make aliens
+	For bad = 1 To 10
+	 For w = 1 To 4
+	 a.alien = New alien
+	 a\x = 0 + 50*bad
+	 a\y = 50*w
+	Next
+	Next 
+EndIf 
+
+	
+Cls
+
+TileImage starsfar ,0,scrolly
+scrolly = scrolly + 2
+
+TileImage stars,0,scrolly*2
+ 
+If scrolly >+ ImageHeight(stars)
+scrolly = 0
+EndIf 
+
+
+;draw player
+DrawImage ship,x,y,playerframe
+
+;test keys 
+If KeyDown(203) 
+ x=x-10
+playerframe = playerframe - 1
+If playerframe <= -1
+playerframe = playerframe + 1
+EndIf 
+EndIf 
+
+If x<30 Then x = 30
+
+If KeyDown(205) 
+x=x+10
+playerframe = playerframe + 1
+If playerframe >=3
+playerframe = playerframe -1
+EndIf 
+EndIf 
+
+If Not KeyDown(205) Or KeyDown(203)
+playerframe = 1
+EndIf 
+
+
+If x>610 Then x = 610
+
+If KeyHit(57) Then
+PlaySound playershot 
+b.bullet = New bullet
+b\x = x
+b\y = y-20
+End If
+
+If KeyHit(19)
+scorefile = WriteFile("score.dat")
+		WriteInt(scorefile,0)
+		CloseFile scorefile
+		highscore = 0 
+EndIf 
+
+
+;test bullets
+For b.bullet = Each bullet
+b\y = b\y - 8
+DrawImage bullet,b\x,b\y
+If b\y < 0 Then 
+Delete b
+EndIf 
+Next
+
+If chdir = True Then 
+	amx = -amx 
+EndIf 
+chdir = False
+
+
+numaliens = 0
+;draw the aliens and see if they are dead
+For a.alien = Each alien
+	;count alien
+	numaliens = numaliens + 1
+	
+	If 400 - (5*levelnum) > 120
+	shoot = Rnd(1,400-(5*levelnum))
+	Else
+	shoot = Rnd(1,120)
+	EndIf  
+	
+	a\x = a\x + amx
+	If a\x > 620 Then chdir = True
+	If a\x < 20 Then chdir = True 
+
+	
+	
+	;drops bombs
+	If shoot = 25 Then
+	PlaySound badshot
+	bomb.bomb = New bomb
+	bomb\x = a\x
+	bomb\y = a\y
+	EndIf 
+    
+
+DrawImage badguy,a\x,a\y,frame 
+ For b.bullet = Each bullet
+  If ImagesCollide(bullet,b\x,b\y,0,badguy,a\x,a\y,0) Then
+  Delete b
+  Delete a
+  PlaySound badexplode 
+  
+score = score + 15
+  Exit 
+ EndIf  
+Next 
+Next 
+
+
+For bomb.bomb = Each bomb
+bomb\y = bomb\y + 7
+DrawImage  badbullet, bomb\x,bomb\y
+	If ImagesCollide(bullet,bomb\x,bomb\y,0,ship,x,y,0) Then
+  		PlaySound badexplode 
+	    lives = lives - 1
+  		Delete bomb
+ 	ElseIf bomb\y > 500 Then
+       Delete bomb
+       EndIf 
+Next
+
+;end game
+	If lives <=0 Then
+		
+		PlaySound playerexplode
+		
+		;save score
+		If score > highscore
+		scorefile = WriteFile("score.dat")
+		WriteInt(scorefile,score)
+		CloseFile scorefile
+		EndIf 
+		
+		Color 0,255,0
+		Text 320,250, "GAME OVER!!!",1,1
+		Flip
+		Delay 3000
+		End    
+	EndIf 
+
+
+;draw HUD
+For n = 1 To lives ;Text 50,420,"Lives:" + lives
+DrawImage ship, 40*n, 450, 1
+Next 
+Text 530,420,"Score:"+score
+Text 320,460,"Level:"+levelnum,1,1
+
+;print highscore
+If score < highscore
+Text 320,440,"Highscore:" + highscore,1,1
+Else
+Text 320,440,"Highscore:" + score,1,1
+EndIf 
+
+
+WaitTimer(timer)
+
+Flip
+numofcycles = numofcycles + 1
+If numofcycles Mod 10 = 0 
+frame = frame + 1
+EndIf 
+If numofcycles >=10
+numofcycles = 0
+EndIf 
+
+If frame >=2
+frame = 0
+EndIf 
+
+Wend 
+
+
+If score > highscore
+scorefile = WriteFile("score.dat")
+		WriteInt(scorefile,score)
+		CloseFile scorefile
+	EndIf 
+	
+Color 0,255,0		
+Text 320,250,"See Ya!",1,1
+Flip 
+Delay  3000	
+End 	
+
+Function Instructions()
+Repeat 
+Locate 0,0
+Print "Use the left and right arow keys to move"
+Print ""
+Print "Hit the spacebar to fire at the munchies"
+Print ""
+Print "Hit the R key to reset the highscore"
+Print ""
+Print "Hit the Esc. key to abandon"
+Print "all of humanity!"
+Print ""
+Print "You have 3 lives for the whole game, so survive!"
+Print ""
+Print "Good luck!"
+Print ""
+Print "Hit the spacebar to start." 
+Until KeyHit(57) 
+End Function 

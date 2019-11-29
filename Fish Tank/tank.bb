@@ -1,0 +1,226 @@
+AppTitle "Computer fish tank"
+Graphics 640,480,0,1
+SetBuffer BackBuffer()
+SeedRnd MilliSecs()
+AutoMidHandle True
+
+
+Global endx = MouseX()
+Global endy = MouseY()
+
+Global tank1 = LoadImage("tank1.bmp")
+Global tank2 = LoadImage("tank2.bmp")
+
+Global one = LoadAnimImage("fish 1.bmp",62,25,0,2)
+Global two = LoadAnimImage("fish 2.bmp",72,20,0,2)
+Global three = LoadAnimImage("fish 3.bmp",88,61,0,2)
+
+Global onex#=100
+Global oney#=100
+Global onemx#=Rnd(-2,2)
+Global onemy#=Rnd(-2,2)
+Global oneframe = 1
+
+Global twox#=400
+Global twoy#=350
+Global twomx#=Rnd(-2,2)
+Global twomy#=Rnd(-2,2)
+Global twoframe = 0
+
+Global threex#=200
+Global threey#=300
+Global threemx#=Rnd(-2,2)
+Global threemy#=Rnd(-2,2)
+Global threeframe = 1
+
+Global tank = Rnd(1,2)
+
+While endx = MouseX() And endy = MouseY()
+Cls 
+testkeys()
+drawstuff()
+movefish()
+choosdirection()
+checkcollision()
+changedirection()
+Flip 
+Wend 
+
+Function testkeys()
+If KeyHit(2)
+tank = 1
+EndIf 
+If KeyHit(3)
+tank = 2
+EndIf 
+End Function 
+
+
+Function drawstuff()
+
+If tank =1
+DrawImage tank1,320,240
+EndIf 
+If tank = 2
+DrawImage tank2,320,240
+EndIf  
+
+DrawImage one,onex,oney,oneframe
+DrawImage two,twox,twoy,twoframe
+DrawImage three,threex,threey,threeframe
+End Function 
+
+Function movefish()
+
+onex = onex + onemx
+oney = oney + onemy
+
+If onemx = 0
+  onemx =1
+EndIf 
+If onemy = 0
+  onemy =-1
+EndIf 
+
+
+
+twox = twox + twomx
+twoy = twoy + twomy
+
+If twomx = 0
+  twomy = -2
+EndIf 
+If twomy = 0
+  twomy =2
+EndIf 
+
+
+threex = threex + threemx
+threey = threey + threemy
+
+If threemx = 0
+ threemx =2
+EndIf 
+If threemy = 0
+threemy =1
+EndIf 
+
+End Function 
+
+
+Function choosdirection()
+
+If onemx < 0
+  oneframe = 1
+Else
+  oneframe = 0
+EndIf 
+
+
+
+If twomx < 0
+  twoframe = 1
+Else
+  twoframe = 0
+EndIf 
+
+
+If threemx < 0 
+  threeframe = 1
+Else
+  threeframe = 0
+EndIf 
+
+End Function  
+
+
+Function checkcollision()
+ 
+;fish one  (the gold one)
+If onex < 31 Or onex >609
+  onemx = -onemx
+EndIf 
+
+If oney < 15 Or oney > 465
+  onemy = - onemy
+EndIf 
+
+;fish two (the swordtail)
+
+If twox < 36 Or twox>449
+   twomx = -twomx
+EndIf 
+
+If twoy <10 Or twoy>470
+  twomy = - twomy
+EndIf 
+
+;fish three (the fat one)
+
+If threex < 44 Or threex >596
+  threemx = -threemx
+EndIf 
+
+If threey < 30 Or threey>450
+  threemy = - threemy
+EndIf 
+
+End Function 
+
+Function changedirection()
+SeedRnd MilliSecs()
+
+changeone = Rnd(200)
+If changeone = 4
+   onemx = - onemx
+EndIf 
+
+If changeone = 15
+   onemy = -onemy
+EndIf 
+
+If onemx < 0
+ onemx = Rnd(-2,-1)
+EndIf 
+If onemx > 0
+  onemx = Rnd(1,2)
+EndIf 
+
+
+
+changetwo = Rnd(200)
+If changetwo = 3
+  twomx = -twomx
+EndIf 
+
+If changetwo = Rnd(11)
+  twomy = -twomy
+EndIf 
+
+If twomx < 0
+ twomx = Rnd(-2,-1)
+EndIf 
+If twomx > 0
+  twomx = Rnd(1,2)
+EndIf 
+
+
+
+changethree =Rnd(200)
+If changethree = 9
+   threemx = -threemx
+EndIf 
+
+If changethree = 18
+  threemy = - threemy
+EndIf 
+
+If threemx < 0
+ threemx = Rnd(-2,-1)
+EndIf 
+If threemx > 0
+  threemx = Rnd(1,2)
+EndIf 
+
+
+End Function 
